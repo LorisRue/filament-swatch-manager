@@ -1,0 +1,7 @@
+import { sampleFilaments } from "@/data/sampleFilaments";
+
+export async function GET() {
+    return Response.json({ filament: sampleFilaments[0] });
+}
+
+// TODO: PUT, PATCH, DELETE
