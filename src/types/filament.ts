@@ -29,8 +29,6 @@ export type filament = {
 }
 
 export type dbFilament = {
-    id: number;
-    created_at: string;
     identifier: string;
     type: string;
     color: string;

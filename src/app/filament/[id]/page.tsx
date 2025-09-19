@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import { clientCacheConfig } from '@/lib/config';
 
 
 const getFilament = async (id: string): Promise<filament> => {
@@ -25,8 +26,8 @@ function Page() {
     const { data: filament, refetch, error } = useQuery({
         queryKey: ["filament", params.id],
         queryFn: () => getFilament(params.id),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        refetchInterval: 1000 * 60 * 10 // 10 minutes
+        staleTime: clientCacheConfig.stale,
+        refetchInterval: clientCacheConfig.refetch
     });
 
     if (error) {

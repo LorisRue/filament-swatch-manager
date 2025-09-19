@@ -7,6 +7,7 @@ import FilamentCard from "@/components/FilamentCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RotateCw } from "lucide-react";
+import { clientCacheConfig } from "@/lib/config";
 
 const getFilaments = async (): Promise<filament[]> => {
   const res = await fetch('/api/filament');
@@ -19,8 +20,8 @@ export default function Home() {
   const { data: filaments, isPending, refetch, error } = useQuery({
     queryKey: ["filaments"],
     queryFn: getFilaments,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchInterval: 1000 * 60 * 10 // 10 minutes
+    staleTime: clientCacheConfig.stale,
+    refetchInterval: clientCacheConfig.refetch
   });
 
   if (error) {

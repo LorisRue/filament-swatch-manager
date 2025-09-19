@@ -31,5 +31,29 @@ export function convertDbToFilament(data: dbFilament): filament {
     },
     notes: data.notes || undefined
   }
+}
 
+export function convertFilamentToDb(filament: filament): dbFilament {
+  return {
+    identifier: filament.identifier,
+    type: filament.type,
+    color: filament.color,
+    colorHex: filament.colorHex,
+    material: filament.material,
+    brand: filament.brand,
+    diameter: filament.diameter,
+    cost: filament.cost || null,
+    supplier: filament.supplier || null,
+    weight: filament.weight,
+    weightLeft: filament.weightLeft || null,
+    inStock: filament.inStock,
+    dateAdded: filament.dateAdded,
+    nozzleTemp: filament.printSettings.nozzleTemp || null,
+    bedTemp: filament.printSettings.bedTemp || null,
+    flowRatio: filament.printSettings.flowRatio || null,
+    pressureAdvance: filament.printSettings.pressureAdvance || null,
+    retractionDistance: filament.printSettings.retractionDistance || null,
+    maxVolumetricSpeed: filament.printSettings.maxVolumetricSpeed || null,
+    notes: filament.notes || null
+  }
 }
