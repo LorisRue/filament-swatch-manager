@@ -27,3 +27,28 @@ export type filament = {
     printSettings: printSettings;
     notes?: string;
 }
+
+export type dbFilament = {
+    id: number;
+    created_at: string;
+    identifier: string;
+    type: string;
+    color: string;
+    colorHex: string;
+    material: material;
+    brand: string;
+    diameter: number;
+    cost: number | null;
+    supplier: string | null;
+    weight: number;
+    weightLeft: number | null;
+    inStock: boolean;
+    dateAdded: string;
+    notes: string | null;
+    nozzleTemp: number | null;
+    bedTemp: number | null;
+    flowRatio: number | null;
+    pressureAdvance: number | null;
+    retractionDistance: number | null;
+    maxVolumetricSpeed: number | null;
+}

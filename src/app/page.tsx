@@ -33,7 +33,9 @@ export default function Home() {
         <h1 className="text-3xl font-bold">Your Filaments</h1>
       </header>
       <main className="py-4">
-        <Button onClick={() => refetch()}><RotateCw /></Button>
+        <div>
+          <Button variant="ghost" onClick={() => refetch()}><RotateCw /></Button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
           {/* Filament Stock information*/}
           {isPending ? null :

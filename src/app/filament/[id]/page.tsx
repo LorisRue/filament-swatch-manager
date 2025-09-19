@@ -34,13 +34,14 @@ function Page() {
     }
 
 
+
     const stockPercentage = filament && filament.weightLeft ? (filament.weightLeft / filament.weight) * 100 : 0;
 
     return (
         <>
             <header className='mb-8'>
                 <Link href="/">
-                    <Button variant="ghost" className="mb-4">
+                    <Button variant="ghost" className="mb-4 cursor-pointer">
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Collection
                     </Button>
