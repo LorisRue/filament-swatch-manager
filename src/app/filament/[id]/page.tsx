@@ -68,7 +68,7 @@ function Page() {
                 {filament ?
                     <div className="grid grid-cols-1 grid-rows-5 lg:grid-cols-3 lg:grid-rows-3 gap-8 grid-flow-col">
                         {/* Basic Information */}
-                        <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-2">
+                        <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-2 lg:col-start-1 lg:row-start-1">
                             <CardHeader>
                                 <CardTitle>Basic Information</CardTitle>
                             </CardHeader>
@@ -111,7 +111,7 @@ function Page() {
 
 
                         {/* Printing Settings */}
-                        <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-2">
+                        <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-2 lg:col-start-1 lg:row-start-2">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     Printing Settings
@@ -165,21 +165,11 @@ function Page() {
                             </CardContent>
                         </Card>
 
-                        {/* Notes */}
-                        {filament.notes && (
-                            <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-3">
-                                <CardHeader>
-                                    <CardTitle>Notes</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-muted-foreground leading-relaxed">{filament.notes}</p>
-                                </CardContent>
-                            </Card>
-                        )}
+
 
                         {/* Sidebar */}
                         {/* Stock Information */}
-                        <Card className="border-2 border-border/50 bg-card">
+                        <Card className="border-2 border-border/50 bg-card lg:col-start-3 lg:row-start-1">
                             <CardHeader>
                                 <CardTitle>Stock Information</CardTitle>
                             </CardHeader>
@@ -214,7 +204,7 @@ function Page() {
                         </Card>
 
                         {/* Purchase Information */}
-                        <Card className="border-2 border-border/50 bg-card">
+                        <Card className="border-2 border-border/50 bg-card lg:col-start-3 lg:row-start-2">
                             <CardHeader>
                                 <CardTitle>Purchase Information</CardTitle>
                             </CardHeader>
@@ -241,6 +231,18 @@ function Page() {
 
                             </CardContent>
                         </Card>
+
+                        {/* Notes */}
+                        {filament.notes && (
+                            <Card className="border-2 border-border/50 bg-card col-span-1 lg:col-span-3 lg:col-start-1 lg:row-start-3">
+                                <CardHeader>
+                                    <CardTitle>Notes</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-muted-foreground leading-relaxed">{filament.notes}</p>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                     : null}
             </main >
