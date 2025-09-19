@@ -119,4 +119,8 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .informationCard {
+    @apply drop-shadow-xl border-2 border-border/50 bg-card;
+  }
 }

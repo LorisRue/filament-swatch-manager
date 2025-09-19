@@ -6,8 +6,8 @@ export const sampleFilaments: filament[] = [
         material: 'PLA',
         type: 'Matte PLA',
         brand: 'Hatchbox',
-        color: 'White',
-        colorHex: '#FFFFFF',
+        color: 'Orange',
+        colorHex: '#FFA500',
         diameter: 1.75,
         cost: 25,
         weight: 1000,
@@ -21,7 +21,8 @@ export const sampleFilaments: filament[] = [
             retractionDistance: 1.0,
             maxVolumetricSpeed: 12
         },
-        dateAdded: "2024-06-01T10:00:00Z"
+        dateAdded: "2024-06-01T10:00:00Z",
+        notes: "Great for detailed prints with a smooth finish."
     },
     {
         identifier: 'PL826',
@@ -37,7 +38,8 @@ export const sampleFilaments: filament[] = [
             nozzleTemp: 210,
             bedTemp: 60
         },
-        dateAdded: "2024-06-02T10:00:00Z"
+        dateAdded: "2024-06-02T10:00:00Z",
+        notes: "Excellent shine but needs slower print speeds for best results. Prone to stringing above 210°C."
     },
     {
         identifier: 'PL827',
@@ -51,7 +53,8 @@ export const sampleFilaments: filament[] = [
         weight: 850,
         inStock: false,
         printSettings: {},
-        dateAdded: "2024-06-03T10:00:00Z"
+        dateAdded: "2024-06-03T10:00:00Z",
+        notes: "Last roll had some inconsistent diameter issues. Not recommended for precise prints."
     },
     {
         identifier: 'PL828',
@@ -117,7 +120,8 @@ export const sampleFilaments: filament[] = [
             bedTemp: 100,
             retractionDistance: 2.0
         },
-        dateAdded: "2024-06-07T10:00:00Z"
+        dateAdded: "2024-06-07T10:00:00Z",
+        notes: "Requires enclosure. Best results with 45°C chamber temperature. Good layer adhesion."
     },
     {
         identifier: 'AB102',
@@ -166,7 +170,8 @@ export const sampleFilaments: filament[] = [
             bedTemp: 80,
             flowRatio: 1.1
         },
-        dateAdded: "2024-06-10T10:00:00Z"
+        dateAdded: "2024-06-10T10:00:00Z",
+        notes: "Keep dry! Becomes brittle if exposed to humidity. Pre-dry at 65°C for 4-6 hours."
     },
     {
         identifier: 'PE202',
@@ -215,7 +220,8 @@ export const sampleFilaments: filament[] = [
             nozzleTemp: 255,
             bedTemp: 70
         },
-        dateAdded: "2024-06-13T10:00:00Z"
+        dateAdded: "2024-06-13T10:00:00Z",
+        notes: "Store with desiccant. Must dry at 80°C for 12h before use. Very strong but hygroscopic."
     },
     {
         identifier: 'NY302',
@@ -249,7 +255,8 @@ export const sampleFilaments: filament[] = [
             flowRatio: 1.2,
             retractionDistance: 0.5
         },
-        dateAdded: "2024-06-15T10:00:00Z"
+        dateAdded: "2024-06-15T10:00:00Z",
+        notes: "Print slow (25mm/s max). Direct drive extruder required. Great for flexible parts."
     },
     {
         identifier: 'TPU402',
@@ -328,6 +335,7 @@ export const sampleFilaments: filament[] = [
             bedTemp: 115,
             flowRatio: 1.15
         },
-        dateAdded: "2024-06-20T10:00:00Z"
+        dateAdded: "2024-06-20T10:00:00Z",
+        notes: "High temperature material. Needs polycarbonate bed surface. Excellent strength and heat resistance."
     }
 ];

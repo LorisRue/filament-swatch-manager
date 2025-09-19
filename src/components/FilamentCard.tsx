@@ -9,9 +9,12 @@ interface Props { filament: filament }
 function FilamentCard(props: Props) {
     const { filament } = props
 
+    const stockPercentage = filament.weightLeft && filament.weight ?
+        (filament.weightLeft / filament.weight) * 100 : 0
+
     return (
         <Link href={`/filament/${filament.identifier}`}>
-            <Card className="hover:shadow-xl drop-shadow-xl transition-shadow cursor-pointer border-2 border-border/50 bg-card">
+            <Card className="hover:shadow-xl transition-shadow cursor-pointer h-full informationCard">
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-semibold">{filament.identifier}</CardTitle>
@@ -36,11 +39,27 @@ function FilamentCard(props: Props) {
                         </div>
 
                         <div className="flex justify-between items-center pt-2">
-                            {filament.cost &&
-                                <span className="text-sm font-medium">{filament.cost}CHF</span>
-                            }
-                            <span className="text-sm font-medium">{filament.dateAdded}</span>
+
+                            <span className="text-sm font-medium">{filament.cost && `${filament.cost}CHF`}</span>
+
+                            <span className="text-sm font-medium">{new Date(filament.dateAdded).toLocaleDateString("de-DE")}</span>
                         </div>
+                        {filament.inStock && filament.weightLeft && (
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                    <span>Remaining</span>
+                                    <span>
+                                        {filament.weightLeft}g / {filament.weight}g
+                                    </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="bg-primary h-2 rounded-full transition-all"
+                                        style={{ width: `${stockPercentage}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
