@@ -57,3 +57,19 @@ export function convertFilamentToDb(filament: filament): dbFilament {
     notes: filament.notes || null
   }
 }
+
+export const generateKeyCountPairs = (data: string[], filteredData?: string[]): [string, number][] => {
+  if (!filteredData) {
+    filteredData = data;
+  }
+  const countMap = new Map<string, number>();
+  data.forEach((item) => {
+    countMap.set(item, 0);
+  });
+
+  filteredData.forEach((item) => {
+    countMap.set(item, (countMap.get(item) || 0) + 1);
+  });
+
+  return Array.from(countMap.entries()).sort((a, b) => b[1] - a[1]);
+}

@@ -50,3 +50,13 @@ export type dbFilament = {
     retractionDistance: number | null;
     maxVolumetricSpeed: number | null;
 }
+
+
+export const SORTABLE_FIELDS: { [K in keyof filament]?: string } = {
+    identifier: 'Identifier',
+    cost: 'Cost',
+    weightLeft: 'Weight Left',
+    dateAdded: 'Date Added',
+} as const;
+
+export type SortableFilamentFields = keyof typeof SORTABLE_FIELDS;
