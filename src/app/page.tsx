@@ -83,7 +83,7 @@ const sortFilaments = (data: filament[], sortBy: SortableFilamentFields, sortOrd
 
 
 //TODO: Add new filament button
-//TODO: Add Filter, search and sort
+//TODO: Add search
 export default function Home() {
   const [materialFilter, setMaterialFilter] = useState<string>("all");
   const [colorFilter, setColorFilter] = useState<string>("all");
