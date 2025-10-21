@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabaseClient";
 import { convertDbToFilament } from "@/lib/utils";
 import type { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } | Promise<{ id: string }> }
+) {
+    // Next's generated types may provide params as a Promise or a plain object.
+    // Awaiting ensures compatibility with both shapes.
     const { id } = await params;
 
     const { data, error } = await supabase
