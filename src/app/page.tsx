@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateKeyCountPairs } from "@/lib/utils";
 
 
@@ -85,13 +86,17 @@ const sortFilaments = (data: filament[], sortBy: SortableFilamentFields, sortOrd
 //TODO: Add new filament button
 //TODO: Add search
 export default function Home() {
-  const [materialFilter, setMaterialFilter] = useState<string>("all");
-  const [colorFilter, setColorFilter] = useState<string>("all");
-  const [brandFilter, setBrandFilter] = useState<string>("all");
-  const [inStockFilter, setInStockFilter] = useState<string>("all");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const [sortBy, setSortBy] = useState<SortableFilamentFields>("identifier");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [materialFilter, setMaterialFilter] = useState<string>(() => searchParams?.get('material') ?? "all");
+  const [colorFilter, setColorFilter] = useState<string>(() => searchParams?.get('color') ?? "all");
+  const [brandFilter, setBrandFilter] = useState<string>(() => searchParams?.get('brand') ?? "all");
+  const [inStockFilter, setInStockFilter] = useState<string>(() => searchParams?.get('inStock') ?? "all");
+
+  const [sortBy, setSortBy] = useState<SortableFilamentFields>(() => (searchParams?.get('sortBy') as SortableFilamentFields) ?? "identifier");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(() => (searchParams?.get('sortOrder') as "asc" | "desc") ?? "asc");
 
   const [filaments, setFilaments] = useState<filament[] | undefined>(undefined);
 
@@ -114,6 +119,30 @@ export default function Home() {
     }
   }, [data, materialFilter, colorFilter, brandFilter, inStockFilter, sortBy, sortOrder]);
 
+  // Helper to update URL search params without adding a history entry (replaceState)
+  const updateUrl = (overrides?: Partial<Record<string, string>>) => {
+    const params = new URLSearchParams();
+
+    const m = overrides?.material ?? materialFilter;
+    const c = overrides?.color ?? colorFilter;
+    const b = overrides?.brand ?? brandFilter;
+    const s = overrides?.inStock ?? inStockFilter;
+    const sb = overrides?.sortBy ?? sortBy;
+    const so = overrides?.sortOrder ?? sortOrder;
+
+    if (m && m !== 'all') params.set('material', m);
+    if (c && c !== 'all') params.set('color', c);
+    if (b && b !== 'all') params.set('brand', b);
+    if (s && s !== 'all') params.set('inStock', s);
+    if (sb && sb !== 'identifier') params.set('sortBy', String(sb));
+    if (so && so !== 'asc') params.set('sortOrder', so);
+
+    const query = params.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    // use router.replace to avoid creating new history entries
+    router.replace(url);
+  };
+
 
   return (
     <>
@@ -123,7 +152,7 @@ export default function Home() {
       <main className="py-4">
         {/* Filters */}
         <div className="flex flex-wrap gap-2 my-4">
-          <Select value={materialFilter} onValueChange={setMaterialFilter}>
+          <Select value={materialFilter} onValueChange={(v) => { setMaterialFilter(v); updateUrl({ material: v }); }}>
             <SelectTrigger>
               <SelectValue placeholder="Material" />
             </SelectTrigger>
@@ -139,7 +168,7 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Select value={colorFilter} onValueChange={setColorFilter}>
+          <Select value={colorFilter} onValueChange={(v) => { setColorFilter(v); updateUrl({ color: v }); }}>
             <SelectTrigger>
               <SelectValue placeholder="Color" />
             </SelectTrigger>
@@ -155,7 +184,7 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Select value={brandFilter} onValueChange={setBrandFilter}>
+          <Select value={brandFilter} onValueChange={(v) => { setBrandFilter(v); updateUrl({ brand: v }); }}>
             <SelectTrigger>
               <SelectValue placeholder="Brand" />
             </SelectTrigger>
@@ -171,7 +200,7 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Select value={inStockFilter} onValueChange={setInStockFilter}>
+          <Select value={inStockFilter} onValueChange={(v) => { setInStockFilter(v); updateUrl({ inStock: v }); }}>
             <SelectTrigger>
               <SelectValue placeholder="Stock Status" />
             </SelectTrigger>
@@ -189,13 +218,13 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" onClick={() => { setMaterialFilter("all"); setColorFilter("all"); setBrandFilter("all"); setInStockFilter("all"); }}>Clear Filters</Button>
+          <Button variant="outline" onClick={() => { setMaterialFilter("all"); setColorFilter("all"); setBrandFilter("all"); setInStockFilter("all"); updateUrl({ material: 'all', color: 'all', brand: 'all', inStock: 'all' }); }}>Clear Filters</Button>
         </div>
 
         <div className="flex justify-between">
           {/* Sort */}
           <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as keyof filament)}>
+              <Select value={sortBy} onValueChange={(value) => { setSortBy(value as keyof filament); updateUrl({ sortBy: value }); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
@@ -213,7 +242,11 @@ export default function Home() {
                 variant="outline"
                 aria-label={sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
                 title={sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
-                onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                onClick={() => {
+                  const next = sortOrder === "asc" ? "desc" : "asc";
+                  setSortOrder(next);
+                  updateUrl({ sortOrder: next });
+                }}
                 className="h-10 w-10 p-2"
               >
                 {sortOrder === "asc" ? <ArrowUp /> : <ArrowDown />}
