@@ -6,7 +6,7 @@ import { filament, SortableFilamentFields, SORTABLE_FIELDS } from "@/types/filam
 import FilamentCard from "@/components/FilamentCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RotateCw, ArrowUp, ArrowDown } from "lucide-react";
+import { RotateCw, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { clientCacheConfig } from "@/lib/config";
 import { getAllFilaments } from "@/lib/filamentCrud";
 import {
@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateKeyCountPairs } from "@/lib/utils";
+import AddFilamentForm from "@/components/AddFilamentForm";
 
 
 
@@ -110,6 +111,10 @@ export default function Home() {
   if (error) {
     alert("Error loading filaments");
   }
+
+  const [showAddForm, setShowAddForm] = useState(false);
+
+
 
   useEffect(() => {
     if (data) {
@@ -254,8 +259,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
+          <div className="flex items-center gap-2">
             <Button onClick={() => refetch()}><RotateCw /></Button>
+            <Button variant="outline" onClick={() => setShowAddForm(true)} aria-label="Add filament">
+              <Plus /> Add Filamend
+            </Button>
           </div>
         </div>
 
@@ -295,6 +303,10 @@ export default function Home() {
           ))}
         </div>
       </main>
+
+      {showAddForm && (
+        <AddFilamentForm onClose={() => setShowAddForm(false)} onAdded={async () => { await refetch(); }} />
+      )}
     </>
   );
 }
