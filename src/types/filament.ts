@@ -1,5 +1,14 @@
 export type material = 'PLA' | 'PETG' | 'TPU' | 'ABS' | 'NYLON' | 'ASA';
 
+export const MATERIAL_SHORTHAND: Record<material, string> = {
+    PLA: 'PL',
+    PETG: 'PT',
+    TPU: 'TP',
+    ABS: 'AB',
+    NYLON: 'NY',
+    ASA: 'AS',
+}
+
 export type printSettings = {
     nozzleTemp?: number;
     bedTemp?: number;

@@ -305,7 +305,11 @@ export default function Home() {
       </main>
 
       {showAddForm && (
-        <AddFilamentForm onClose={() => setShowAddForm(false)} onAdded={async () => { await refetch(); }} />
+        <AddFilamentForm
+          onClose={() => setShowAddForm(false)}
+          onAdded={async () => { await refetch(); }}
+          existingIdentifiers={data?.map(f => f.identifier) ?? []}
+        />
       )}
     </>
   );
