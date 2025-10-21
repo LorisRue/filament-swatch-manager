@@ -6,7 +6,7 @@ import { filament, SortableFilamentFields, SORTABLE_FIELDS } from "@/types/filam
 import FilamentCard from "@/components/FilamentCard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { RotateCw } from "lucide-react";
+import { RotateCw, ArrowUp, ArrowDown } from "lucide-react";
 import { clientCacheConfig } from "@/lib/config";
 import { getAllFilaments } from "@/lib/filamentCrud";
 import {
@@ -208,15 +208,17 @@ export default function Home() {
               </SelectContent>
             </Select>
 
-            <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort Order" />
-              </SelectTrigger>
-              <SelectContent position="popper" side="bottom" align="start" avoidCollisions>
-                <SelectItem value="asc" className="flex justify-between">Ascending</SelectItem>
-                <SelectItem value="desc" className="flex justify-between">Descending</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center">
+              <Button
+                variant="outline"
+                aria-label={sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
+                title={sortOrder === "asc" ? "Sort ascending" : "Sort descending"}
+                onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                className="h-10 w-10 p-2"
+              >
+                {sortOrder === "asc" ? <ArrowUp /> : <ArrowDown />}
+              </Button>
+            </div>
           </div>
 
           <div>
