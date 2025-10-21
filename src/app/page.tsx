@@ -167,6 +167,7 @@ export default function Home() {
                 data.map(f => f.material),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'material').map(f => f.material)
               )
+                .filter(([material]) => Boolean(material) && String(material).length > 0)
                 .map(([material, count]) => (
                   <SelectItem key={material} value={material} disabled={count === 0} className="flex justify-between">{material} ({count})</SelectItem>
                 ))}
@@ -183,6 +184,7 @@ export default function Home() {
                 data.map(f => f.color),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'color').map(f => f.color)
               )
+                .filter(([color]) => Boolean(color) && String(color).length > 0)
                 .map(([color, count]) => (
                   <SelectItem key={color} value={color} disabled={count === 0} className="flex justify-between">{color} ({count})</SelectItem>
                 ))}
@@ -199,6 +201,7 @@ export default function Home() {
                 data.map(f => f.brand),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'brand').map(f => f.brand)
               )
+                .filter(([brand]) => Boolean(brand) && String(brand).length > 0)
                 .map(([brand, count]) => (
                   <SelectItem key={brand} value={brand} disabled={count === 0} className="flex justify-between">{brand} ({count})</SelectItem>
                 ))}
@@ -215,6 +218,7 @@ export default function Home() {
                 data.map(f => f.inStock ? 'inStock' : 'outOfStock'),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'inStock').map(f => f.inStock ? 'inStock' : 'outOfStock')
               )
+                .filter(([status]) => Boolean(status) && String(status).length > 0)
                 .map(([status, count]) => (
                   <SelectItem key={status} value={status} disabled={count === 0} className="flex justify-between">
                     {status === 'inStock' ? 'In Stock' : 'Out of Stock'} ({count})
@@ -234,7 +238,7 @@ export default function Home() {
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
               <SelectContent position="popper" side="bottom" align="start" avoidCollisions>
-                {Object.entries(SORTABLE_FIELDS).map(([key, label]) => (
+                {Object.entries(SORTABLE_FIELDS).filter(([key]) => Boolean(key) && String(key).length > 0).map(([key, label]) => (
                   <SelectItem key={key} value={key} className="flex justify-between">
                     {label}
                   </SelectItem>
