@@ -19,6 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generateKeyCountPairs } from "@/lib/utils";
+import FilamentForm from "@/components/FilamentForm";
 
 
 
@@ -162,6 +163,8 @@ export default function Home() {
                 data.map(f => f.material),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'material').map(f => f.material)
               )
+                // filter out empty/blank material keys which would produce empty SelectItem values
+                .filter(([material]) => material !== undefined && material !== null && String(material).trim() !== "")
                 .map(([material, count]) => (
                   <SelectItem key={material} value={material} disabled={count === 0} className="flex justify-between">{material} ({count})</SelectItem>
                 ))}
@@ -178,6 +181,8 @@ export default function Home() {
                 data.map(f => f.color),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'color').map(f => f.color)
               )
+                // filter out empty/blank color keys
+                .filter(([color]) => color !== undefined && color !== null && String(color).trim() !== "")
                 .map(([color, count]) => (
                   <SelectItem key={color} value={color} disabled={count === 0} className="flex justify-between">{color} ({count})</SelectItem>
                 ))}
@@ -194,6 +199,8 @@ export default function Home() {
                 data.map(f => f.brand),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'brand').map(f => f.brand)
               )
+                // filter out empty/blank brand keys
+                .filter(([brand]) => brand !== undefined && brand !== null && String(brand).trim() !== "")
                 .map(([brand, count]) => (
                   <SelectItem key={brand} value={brand} disabled={count === 0} className="flex justify-between">{brand} ({count})</SelectItem>
                 ))}
@@ -210,6 +217,8 @@ export default function Home() {
                 data.map(f => f.inStock ? 'inStock' : 'outOfStock'),
                 filterData(data, materialFilter, colorFilter, brandFilter, inStockFilter, 'inStock').map(f => f.inStock ? 'inStock' : 'outOfStock')
               )
+                // status keys are safe but keep consistent filtering
+                .filter(([status]) => status !== undefined && status !== null && String(status).trim() !== "")
                 .map(([status, count]) => (
                   <SelectItem key={status} value={status} disabled={count === 0} className="flex justify-between">
                     {status === 'inStock' ? 'In Stock' : 'Out of Stock'} ({count})
@@ -224,7 +233,7 @@ export default function Home() {
         <div className="flex justify-between">
           {/* Sort */}
           <div className="flex gap-2">
-              <Select value={sortBy} onValueChange={(value) => { setSortBy(value as keyof filament); updateUrl({ sortBy: value }); }}>
+            <Select value={sortBy} onValueChange={(value) => { setSortBy(value as keyof filament); updateUrl({ sortBy: value }); }}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort By" />
               </SelectTrigger>
@@ -254,7 +263,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
+          <div className="flex gap-2">
+            <FilamentForm />
             <Button onClick={() => refetch()}><RotateCw /></Button>
           </div>
         </div>
@@ -278,11 +288,13 @@ export default function Home() {
               <Card className="informationCard">
                 <CardHeader className="text-sm font-medium text-muted-foreground">Materials</CardHeader>
                 <CardContent className="text-2xl font-bold flex flex-wrap gap-1">
-                  {filaments && generateKeyCountPairs(filaments.map(f => f.material)).map(([material, count]) => (
-                    <Badge variant="outline" className="text-xs" key={material}>
-                      {material} {count}
-                    </Badge>
-                  ))}
+                  {filaments && generateKeyCountPairs(filaments.map(f => f.material))
+                    .filter(([material]) => material !== undefined && material !== null && String(material).trim() !== "")
+                    .map(([material, count]) => (
+                      <Badge variant="outline" className="text-xs" key={material}>
+                        {material} {count}
+                      </Badge>
+                    ))}
                 </CardContent>
               </Card>
             </>
