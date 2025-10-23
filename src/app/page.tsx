@@ -83,6 +83,15 @@ const sortFilaments = (data: filament[], sortBy: SortableFilamentFields, sortOrd
   });
 };
 
+const getKnownBrands = (data: filament[]): string[] => {
+  const brandSet = new Set<string>();
+  data.forEach(f => {
+    if (f.brand) {
+      brandSet.add(f.brand);
+    }
+  });
+  return Array.from(brandSet).sort();
+};
 
 //TODO: Add new filament button
 //TODO: Add search
@@ -143,6 +152,12 @@ export default function Home() {
     // use router.replace to avoid creating new history entries
     router.replace(url);
   };
+
+  const handleAddFilament = (newFilament: filament) => {
+    console.log('Adding Filament (TBA)', newFilament);
+
+  }
+
 
 
   return (
@@ -264,7 +279,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-2">
-            <FilamentForm />
+            <FilamentForm onSubmit={handleAddFilament} filaments={filaments} />
             <Button onClick={() => refetch()}><RotateCw /></Button>
           </div>
         </div>

@@ -221,8 +221,15 @@ function Page() {
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Cost per kg</label>
                                             <p className="text-lg">${(filament.cost / (filament.weight / 1000)).toFixed(2)}</p>
-                                        </div>$
+                                        </div>
                                     </>
+                                }
+
+                                {filament.supplier &&
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">Supplier</label>
+                                        <p className="text-lg">{filament.supplier}</p>
+                                    </div>
                                 }
 
                                 <div>
