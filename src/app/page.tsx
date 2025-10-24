@@ -83,14 +83,21 @@ const sortFilaments = (data: filament[], sortBy: SortableFilamentFields, sortOrd
   });
 };
 
-const getKnownBrands = (data: filament[]): string[] => {
-  const brandSet = new Set<string>();
-  data.forEach(f => {
-    if (f.brand) {
-      brandSet.add(f.brand);
-    }
+const postFilament = async (newFilament: filament) => {
+  const response = await fetch('/api/filament', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newFilament),
   });
-  return Array.from(brandSet).sort();
+
+  if (!response.ok) {
+    throw new Error('Failed to add filament');
+  }
+
+  const addedFilament = await response.json();
+  return addedFilament;
 };
 
 //TODO: Add new filament button
@@ -155,8 +162,12 @@ export default function Home() {
 
   const handleAddFilament = (newFilament: filament) => {
     console.log('Adding Filament (TBA)', newFilament);
-
-  }
+    postFilament(newFilament).then(() => {
+      refetch();
+    }).catch((err) => {
+      alert("Error adding filament: " + err.message);
+    });
+  };
 
 
 
@@ -279,7 +290,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-2">
-            <FilamentForm onSubmit={handleAddFilament} filaments={filaments} />
+            <FilamentForm onSubmit={handleAddFilament} filaments={data} />
             <Button onClick={() => refetch()}><RotateCw /></Button>
           </div>
         </div>

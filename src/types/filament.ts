@@ -8,6 +8,15 @@ export const arrMaterial = [
 ] as const;
 export type material = (typeof arrMaterial)[number];
 
+export const filamentAbbreviations: { [K in material]: string } = {
+  PLA: "PL",
+  PETG: "PT",
+  TPU: "TP",
+  ABS: "AB",
+  NYLON: "NY",
+  ASA: "AS",
+};
+
 export type printSettings = {
   nozzleTemp?: number;
   bedTemp?: number;

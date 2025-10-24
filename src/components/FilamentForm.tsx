@@ -13,8 +13,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus } from 'lucide-react'
-import { arrMaterial, type filament } from '@/types/filament'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { arrMaterial, filamentAbbreviations, material, type filament } from '@/types/filament'
+import { useForm, SubmitHandler, Controller } from 'react-hook-form'
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet, FieldContent } from './ui/field'
 import { Select, SelectItem, SelectContent, SelectLabel, SelectTrigger, SelectValue } from './ui/select'
 import { Popover, PopoverTrigger } from './ui/popover'
@@ -24,6 +24,20 @@ import { Checkbox } from './ui/checkbox'
 const keyValueFromArr = (arr?: string[]) => {
     if (!arr) return []
     return arr.map((item) => ({ label: item, value: item }))
+}
+
+const generateIdentifier = (material: material, filaments: filament[]) => {
+    const abbreviation = filamentAbbreviations[material as keyof typeof filamentAbbreviations];
+    let randomNumber = Math.floor(100 + Math.random() * 900);
+    let identifier = `${abbreviation}-${randomNumber}`;
+
+    // Ensure uniqueness
+    while (filaments.some(f => f.identifier === identifier)) {
+        randomNumber = Math.floor(100 + Math.random() * 900);
+        identifier = `${abbreviation}-${randomNumber}`;
+    }
+
+    return identifier;
 }
 
 type FilamentFormProps = {
@@ -39,6 +53,46 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
     const [knownColors, setKnownColors] = useState<string[]>([]);
     const [knownTypes, setKnownTypes] = useState<string[]>([]);
     const [knownSuppliers, setKnownSuppliers] = useState<string[]>([]);
+    const [open, setOpen] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        setValue,
+        control,
+        reset,
+        formState: { errors }
+    } = useForm<filament>({
+        mode: 'onSubmit',
+        reValidateMode: 'onSubmit'
+    })
+
+    const material = watch('material');
+
+    useEffect(() => {
+        if (open && !filament && filaments) {
+            setValue('identifier', generateIdentifier('PLA' as material, filaments));
+        }
+    }, [open])
+
+    useEffect(() => {
+        if (material && filaments) {
+            const abbreviation = filamentAbbreviations[material as keyof typeof filamentAbbreviations];
+            const currentIdentifier = watch('identifier');
+
+            // If editing and identifier matches current material prefix, keep it
+            if (filament && currentIdentifier && currentIdentifier.startsWith(`${abbreviation}-`)) {
+                return;
+            }
+
+            // Only generate new identifier if it doesn't match the material prefix
+            if (!currentIdentifier || !currentIdentifier.startsWith(`${abbreviation}-`)) {
+                const newIdentifier = generateIdentifier(material, filaments);
+                setValue('identifier', newIdentifier);
+            }
+        }
+    }, [material, filaments, filament, setValue, watch])
 
     useEffect(() => {
         if (filaments) {
@@ -80,42 +134,42 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
         }
     }, [filaments]);
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-    } = useForm<filament>()
     const submitForm: SubmitHandler<filament> = (data) => {
-        // Normalize color to lowercase 7-char hex like #rrggbb
-        if (data.colorHex) {
-            const c = data.colorHex.trim()
-            // If user entered shorthand like #fff expand it
-            const normalized = c.length === 4 && /^#?[0-9a-fA-F]{3}$/.test(c)
-                ? '#' + c.replace(/^#?/, '').split('').map(ch => ch + ch).join('').toLowerCase()
-                : (c.startsWith('#') ? c.toLowerCase() : '#' + c.toLowerCase())
-            data.colorHex = normalized
+        // Ensure colorHex is never null/undefined (DB requires non-null)
+        if (!data.colorHex) {
+            data.colorHex = '#000000'
         }
+
+        // Normalize color to lowercase 7-char hex like #rrggbb
+        const c = (data.colorHex || '').trim()
+        // If user entered shorthand like #fff expand it
+        const normalized = c.length === 4 && /^#?[0-9a-fA-F]{3}$/.test(c)
+            ? '#' + c.replace(/^#?/, '').split('').map(ch => ch + ch).join('').toLowerCase()
+            : (c.startsWith('#') ? c.toLowerCase() : '#' + c.toLowerCase())
+        data.colorHex = normalized
+
         onSubmit(data)
+        setOpen(false) // Close dialog on successful submit
+        reset() // Reset form
     }
+
     // Register the color field and keep color picker and hex text input in sync
     const color = watch('colorHex')
     useEffect(() => {
         // Register programmatically so we can control the input pair
         register('colorHex', { required: true })
-        // When the external filament prop changes, populate the color field
-        if (filament?.colorHex) {
-            setValue('colorHex', filament.colorHex)
-        }
+        // Ensure a non-null default is set so the DB non-null constraint isn't violated
+        // If editing an existing filament use its colorHex, otherwise default to '#000000'
+        setValue('colorHex', filament?.colorHex || '#000000')
     }, [filament, register, setValue])
 
     return (
-        <Dialog>
-            <form onSubmit={handleSubmit(submitForm)} >
-                <DialogTrigger asChild>
-                    <Button variant="outline"><Plus />Add new Filament</Button>
-                </DialogTrigger>
-                <DialogContent className='sm:max-w-3xl'>
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline"><Plus />Add new Filament</Button>
+            </DialogTrigger>
+            <DialogContent className='sm:max-w-3xl max-h-screen md:max-h-3/4 overflow-scroll'>
+                <form onSubmit={handleSubmit(submitForm)} className='flex flex-col gap-4'>
                     <DialogHeader>
                         <DialogTitle>{filament ? 'Edit' : 'Add'} Filament</DialogTitle>
                     </DialogHeader>
@@ -126,31 +180,50 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
                             <FieldDescription>Enter the basic information about the filament.</FieldDescription>
                             <FieldGroup className='grid grid-cols-1 md:grid-cols-2'>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-identifier'>Identifier</FieldLabel>
-                                    <Input
-                                        id='filament-identifier'
-                                        {...register('identifier', { required: true })}
+                                    <FieldLabel htmlFor='filament-identifier' className={errors.identifier ? 'text-red-500' : ''}>Identifier *</FieldLabel>
+                                    <Controller
+                                        name='identifier'
+                                        control={control}
                                         defaultValue={filament?.identifier || ''}
-                                        placeholder='PL-287'
+                                        rules={{ required: true }}
+                                        render={({ field }) => (
+                                            <>
+                                                <Input
+                                                    id='filament-identifier'
+                                                    {...field}
+                                                    placeholder='PL-287'
+                                                    className={errors.identifier ? 'border-red-500' : ''}
+                                                />
+                                                {errors.identifier && <span className="text-red-500 text-sm">This field is required</span>}
+                                            </>
+                                        )}
                                     />
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-type'>Type</FieldLabel>
-                                    <SuggestiveTextInput
-                                        {...register('type', { required: true })}
+                                    <FieldLabel htmlFor='filament-type' className={errors.type ? 'text-red-500' : ''}>Type *</FieldLabel>
+                                    <Controller
+                                        name='type'
+                                        control={control}
                                         defaultValue={filament?.type || ''}
-                                        options={keyValueFromArr(knownTypes)}
-                                        label="Select Type"
-                                        buttonLabel='Select Type'
-                                        id='filament-type'
+                                        rules={{ required: true }}
+                                        render={({ field }) => (
+                                            <SuggestiveTextInput
+                                                {...field}
+                                                options={keyValueFromArr(knownTypes)}
+                                                label="Select Type"
+                                                buttonLabel='Select Type'
+                                                id='filament-type'
+                                            />
+                                        )}
                                     />
+                                    {errors.type && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-color'>Color</FieldLabel>
+                                    <FieldLabel htmlFor='filament-color' className={errors.colorHex ? 'text-red-500' : ''}>Color *</FieldLabel>
                                     <div className="grid grid-cols-4 gap-2">
                                         <Input
                                             type='text'
-                                            className='col-span-3'
+                                            className={`col-span-3 ${errors.colorHex ? 'border-red-500' : ''}`}
                                             id='filament-color-hex'
                                             placeholder="#rrggbb"
                                             value={color || '#000000'}
@@ -163,54 +236,79 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
                                             onChange={(e) => setValue('colorHex', e.target.value)}
                                         />
                                     </div>
+                                    {errors.colorHex && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-color-name'>Color Name</FieldLabel>
-                                    <SuggestiveTextInput
-                                        {...register('color', { required: true })}
+                                    <FieldLabel htmlFor='filament-color-name' className={errors.color ? 'text-red-500' : ''}>Color Name *</FieldLabel>
+                                    <Controller
+                                        name='color'
+                                        control={control}
                                         defaultValue={filament?.color || ''}
-                                        options={keyValueFromArr(knownColors)}
-                                        label="Select Color"
-                                        buttonLabel='Select Color'
-                                        id='filament-color-name'
+                                        rules={{ required: true }}
+                                        render={({ field }) => (
+                                            <SuggestiveTextInput
+                                                {...field}
+                                                options={keyValueFromArr(knownColors)}
+                                                label="Select Color"
+                                                buttonLabel='Select Color'
+                                                id='filament-color-name'
+                                            />
+                                        )}
                                     />
+                                    {errors.color && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-color-material'>Material</FieldLabel>
-                                    <Select
-                                        {...register('material', { required: true })}
+                                    <FieldLabel htmlFor='filament-color-material' className={errors.material ? 'text-red-500' : ''}>Material *</FieldLabel>
+                                    <Controller
+                                        name='material'
+                                        control={control}
                                         defaultValue={filament?.material || 'PLA'}
-                                    >
-                                        <SelectTrigger id='filament-color-material'>
-                                            <SelectValue placeholder="Select Material" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {arrMaterial.map((material) => (
-                                                <SelectItem key={material} value={material}>{material}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </Field>
-                                <Field>
-                                    <FieldLabel htmlFor='filament-brand'>Brand</FieldLabel>
-                                    <SuggestiveTextInput
-                                        {...register('brand', { required: true })}
-                                        options={keyValueFromArr(knownBrands)}
-                                        id='filament-brand'
-                                        buttonLabel='Select Brand'
-                                        label='Select Brand'
-                                        defaultValue={filament?.brand || ''}
+                                        rules={{ required: true }}
+                                        render={({ field }) => (
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <SelectTrigger id='filament-color-material' className={errors.material ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder="Select Material" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {arrMaterial.map((material) => (
+                                                        <SelectItem key={material} value={material}>{material}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
                                     />
+                                    {errors.material && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-diameter'>Diameter (mm)</FieldLabel>
+                                    <FieldLabel htmlFor='filament-brand' className={errors.brand ? 'text-red-500' : ''}>Brand *</FieldLabel>
+                                    <Controller
+                                        name='brand'
+                                        control={control}
+                                        defaultValue={filament?.brand || ''}
+                                        rules={{ required: true }}
+                                        render={({ field }) => (
+                                            <SuggestiveTextInput
+                                                {...field}
+                                                options={keyValueFromArr(knownBrands)}
+                                                id='filament-brand'
+                                                buttonLabel='Select Brand'
+                                                label='Select Brand'
+                                            />
+                                        )}
+                                    />
+                                    {errors.brand && <span className="text-red-500 text-sm">This field is required</span>}
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-diameter' className={errors.diameter ? 'text-red-500' : ''}>Diameter (mm) *</FieldLabel>
                                     <Input
                                         type='number'
                                         {...register('diameter', { required: true })}
                                         defaultValue={filament?.diameter || 1.75}
                                         min={0}
                                         step={0.01}
+                                        className={errors.diameter ? 'border-red-500' : ''}
                                     />
+                                    {errors.diameter && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <Field>
                                     <FieldLabel htmlFor='filament-cost'>Cost</FieldLabel>
@@ -224,48 +322,74 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
                                 </Field>
                                 <Field>
                                     <FieldLabel htmlFor='filament-supplier'>Supplier</FieldLabel>
-                                    <SuggestiveTextInput
-                                        {...register('supplier')}
+                                    <Controller
+                                        name='supplier'
+                                        control={control}
                                         defaultValue={filament?.supplier || ''}
-                                        id='filament-supplier'
-                                        buttonLabel='Select Supplier'
-                                        label='Select Supplier'
-                                        options={keyValueFromArr(knownSuppliers)}
+                                        render={({ field }) => (
+                                            <SuggestiveTextInput
+                                                {...field}
+                                                id='filament-supplier'
+                                                buttonLabel='Select Supplier'
+                                                label='Select Supplier'
+                                                options={keyValueFromArr(knownSuppliers)}
+                                            />
+                                        )}
                                     />
                                 </Field>
                                 <Field>
-                                    <FieldLabel htmlFor='filament-weight'>Weight (g)</FieldLabel>
+                                    <FieldLabel htmlFor='filament-weight' className={errors.weight ? 'text-red-500' : ''}>Weight (g) *</FieldLabel>
                                     <Input
                                         type='number'
                                         {...register('weight', { required: true })}
                                         defaultValue={filament?.weight || 1000}
                                         min={0}
                                         step={5}
+                                        className={errors.weight ? 'border-red-500' : ''}
                                     />
+                                    {errors.weight && <span className="text-red-500 text-sm">This field is required</span>}
                                 </Field>
                                 <div className='flex gap-2'>
                                     <div>
                                         <Field className='h-full flex-shrink-0 flex items-center justify-center'>
                                             <FieldLabel htmlFor='filament-in-stock'>In Stock</FieldLabel>
                                             <FieldContent className='h-full flex justify-center items-center'>
-                                                <Checkbox
-                                                    {...register('inStock', { required: true })}
-                                                    defaultChecked={filament?.inStock || false}
+                                                <Controller
+                                                    name='inStock'
+                                                    control={control}
+                                                    defaultValue={filament?.inStock || false}
+                                                    render={({ field }) => (
+                                                        <Checkbox
+                                                            checked={!!field.value}
+                                                            onCheckedChange={(v) => field.onChange(v)}
+                                                            aria-checked={!!field.value}
+                                                        />
+                                                    )}
                                                 />
                                             </FieldContent>
                                         </Field>
                                     </div>
                                     <div className='flex-1'>
                                         <Field>
-                                            <FieldLabel htmlFor='filament-weight-left'>Weight Left (g)</FieldLabel>
-                                            <Input
-                                                disabled={!watch('inStock')}
-                                                type='number'
-                                                {...register('weightLeft', { required: true })}
-                                                defaultValue={filament?.weightLeft || 1000}
-                                                min={0}
-                                                step={5}
-                                            />
+                                            <FieldLabel htmlFor='filament-weight-left' className={errors.weightLeft ? 'text-red-500' : ''}>Weight Left (g)</FieldLabel>
+                                            {(() => {
+                                                const inStock = watch('inStock')
+                                                return (
+                                                    <>
+                                                        <Input
+                                                            type='number'
+                                                            {...register('weightLeft', { required: true })}
+                                                            defaultValue={filament?.weightLeft || 1000}
+                                                            min={0}
+                                                            step={5}
+                                                            disabled={!inStock}
+                                                            aria-disabled={!inStock}
+                                                            className={errors.weightLeft ? 'border-red-500' : ''}
+                                                        />
+                                                        {errors.weightLeft && <span className="text-red-500 text-sm">This field is required</span>}
+                                                    </>
+                                                )
+                                            })()}
                                         </Field>
                                     </div>
                                 </div>
@@ -275,21 +399,80 @@ function FilamentForm({ filament, filaments, onSubmit }: FilamentFormProps) {
                         <FieldSet>
                             <FieldLegend>Print Settings</FieldLegend>
                             <FieldDescription>Configure the print settings for the filament.</FieldDescription>
+                            <FieldGroup className='grid grid-cols-1 md:grid-cols-2'>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-nozzle-temp'>Nozzle Temperature (°C)</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-nozzle-temp'
+                                        {...register('printSettings.nozzleTemp')}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-bed-temp'>Bed Temperature (°C)</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-bed-temp'
+                                        {...register('printSettings.bedTemp')}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-flow-ratio'>Flow Ratio</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-flow-ratio'
+                                        {...register('printSettings.flowRatio')}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-pressure-advance'>Pressure Advance</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-pressure-advance'
+                                        {...register('printSettings.pressureAdvance')}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-retraction-distance'>Retraction Distance (mm)</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-retraction-distance'
+                                        {...register('printSettings.retractionDistance')}
+                                    />
+                                </Field>
+                                <Field>
+                                    <FieldLabel htmlFor='filament-max-volumetric-speed'>Max Volumetric Speed (mm³/s)</FieldLabel>
+                                    <Input
+                                        type='number'
+                                        id='filament-max-volumetric-speed'
+                                        {...register('printSettings.maxVolumetricSpeed')}
+                                    />
+                                </Field>
+                            </FieldGroup>
                         </FieldSet>
                         {/* Notes FieldSet */}
                         <FieldSet>
                             <FieldLegend>Notes</FieldLegend>
                             <FieldDescription>Add any additional notes or comments about the filament.</FieldDescription>
+                            <Field>
+                                <textarea
+                                    id='filament-notes'
+                                    {...register('notes')}
+                                    defaultValue={filament?.notes || ''}
+                                    className='w-full p-2 border border-gray-300 rounded-md'
+                                    rows={4}
+                                />
+                            </Field>
                         </FieldSet>
                     </FieldGroup>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
+                            <Button type="button" variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button type="submit">Save changes</Button>
                     </DialogFooter>
-                </DialogContent>
-            </form >
+                </form >
+            </DialogContent>
         </Dialog >
     )
 }
