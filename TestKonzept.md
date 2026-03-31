@@ -2,14 +2,12 @@
 
 ## Was testen wir?
 
-Die Web-App verwalten Filamente mit CRUD, Filter, Sortierung und Supabase-DB. Ziel: Alles funktioniert zuverlässig.
+Die Web-App verwaltet Filamente mit CRUD (ohne Update/Delete), Filter, Sortierung und Supabase-DB. Ziel: Alles funktioniert zuverlässig.
 
 ## Testarten
 
 - 60% Unit Tests (Jest): Pure Funktionen
-
 - 30% Integration (MSW): API + Frontend
-
 - 10% E2E (Playwright): Komplette Userflows
 
 ## Wichtige Testfälle
@@ -27,12 +25,23 @@ Die Web-App verwalten Filamente mit CRUD, Filter, Sortierung und Supabase-DB. Zi
 - POST fehlerhaft → 400/409 Fehler
 - Supabase-Ausfall → 500 Fehler
 
+- Validierung:
+  - Pflichtfelder fehlen → Fehler
+  - Ungültige Werte → Fehler
+
+- UI-Verhalten:
+  - Loading State während Request
+  - Empty State bei leerer Liste
+
 ### E2E Tests (Browser)
 
 - Filter setzen/löschen → Karten aktualisieren
 - Sortieren (Spalte/Richtung) → Reihenfolge ändert
 - Formular ausfüllen → neues Filament erscheint
+- Formular mit Fehlern → Fehlermeldungen sichtbar
 - URL-Filter persistent bei Reload
+- Direktaufruf mit URL-Parametern → Filter korrekt gesetzt
+- Empty State sichtbar, wenn keine Daten vorhanden
 
 ## Tools & Setup
 
@@ -40,7 +49,11 @@ Die Web-App verwalten Filamente mit CRUD, Filter, Sortierung und Supabase-DB. Zi
 - API-Mock: MSW
 - E2E: Playwright
 - DB: Supabase Testprojekt
-- CI: GitHub Actions (jeder Push/PR)
+
+### Testdaten
+
+- Definierte Seed-Daten für Tests
+- Konsistenter DB-Zustand pro Testlauf (Reset oder Isolation)
 
 ## Coverage-Ziele
 
