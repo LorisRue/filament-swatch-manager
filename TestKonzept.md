@@ -61,3 +61,36 @@ Die Web-App verwaltet Filamente mit CRUD (ohne Update/Delete), Filter, Sortierun
 - API: 80%
 - Frontend: 70%
 - Gesamt: 75%
+
+## Umgesetzt (April 2026)
+
+### Framework Setup
+
+- Jest + React Testing Library konfiguriert (`jest.config.ts`, `jest.setup.ts`)
+- MSW für Integrationstests eingerichtet (MSW v1 in Jest-Tests)
+- Playwright konfiguriert (`playwright.config.ts`)
+- NPM-Skripte ergänzt:
+  - `npm run test`
+  - `npm run test:watch`
+  - `npm run test:coverage`
+  - `npm run test:e2e`
+  - `npm run test:e2e:ui`
+
+### Umgesetzte Tests
+
+- Unit:
+  - `src/lib/utils.test.ts`
+  - `src/lib/filamentQuery.test.ts`
+- Integration:
+  - `src/app/api/filament/route.test.ts`
+  - `src/lib/filamentCrud.integration.test.ts`
+  - `src/app/home.integration.test.tsx`
+- E2E:
+  - `tests/e2e/home.spec.ts`
+
+### Ergänzte App-Logik für Testbarkeit
+
+- Filter/Sortierung aus `page.tsx` extrahiert nach `src/lib/filamentQuery.ts`
+- API-Validierung für `POST /api/filament` ergänzt (400 bei invalidem Payload)
+- 409 für Duplikate (`identifier`) ergänzt
+- Empty State in der Home-Ansicht ergänzt (`No filaments found.`)
