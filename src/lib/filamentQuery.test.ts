@@ -49,7 +49,13 @@ const data: filament[] = [
   },
 ];
 
+// ─── filterData ──────────────────────────────────────────────────────────────
+
 describe("filterData", () => {
+  it("returns all items when all filters are 'all'", () => {
+    expect(filterData(data, "all", "all", "all", "all", "")).toHaveLength(3);
+  });
+
   it("filters by material, color, brand and stock status", () => {
     const result = filterData(data, "PLA", "Red", "Prusa", "inStock", "");
 
@@ -57,10 +63,32 @@ describe("filterData", () => {
     expect(result[0].identifier).toBe("PL-101");
   });
 
-  it("supports excludeFilter for cross-filter dropdown counts", () => {
-    const result = filterData(data, "PLA", "all", "all", "all", "material");
+  it("filters by material only", () => {
+    const result = filterData(data, "PLA", "all", "all", "all", "");
 
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(2);
+    result.forEach((f) => expect(f.material).toBe("PLA"));
+  });
+
+  it("filters by color only", () => {
+    const result = filterData(data, "all", "Blue", "all", "all", "");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].identifier).toBe("PT-202");
+  });
+
+  it("filters by brand only", () => {
+    const result = filterData(data, "all", "all", "Sunlu", "all", "");
+
+    expect(result).toHaveLength(2);
+    result.forEach((f) => expect(f.brand).toBe("Sunlu"));
+  });
+
+  it("filters in-stock entries", () => {
+    const result = filterData(data, "all", "all", "all", "inStock", "");
+
+    expect(result.every((f) => f.inStock)).toBe(true);
+    expect(result).toHaveLength(2);
   });
 
   it("filters out of stock entries", () => {
@@ -69,7 +97,39 @@ describe("filterData", () => {
     expect(result).toHaveLength(1);
     expect(result[0].identifier).toBe("PT-202");
   });
+
+  it("returns empty array when no items match", () => {
+    const result = filterData(data, "ABS", "all", "all", "all", "");
+    expect(result).toHaveLength(0);
+  });
+
+  it("handles empty input", () => {
+    expect(filterData([], "PLA", "all", "all", "all", "")).toHaveLength(0);
+  });
+
+  it("supports excludeFilter for cross-filter dropdown counts", () => {
+    const result = filterData(data, "PLA", "all", "all", "all", "material");
+
+    expect(result).toHaveLength(3);
+  });
+
+  it("excludes color filter when excludeFilter is 'color'", () => {
+    const result = filterData(data, "all", "Red", "all", "all", "color");
+    expect(result).toHaveLength(3);
+  });
+
+  it("excludes brand filter when excludeFilter is 'brand'", () => {
+    const result = filterData(data, "all", "all", "Prusa", "all", "brand");
+    expect(result).toHaveLength(3);
+  });
+
+  it("excludes inStock filter when excludeFilter is 'inStock'", () => {
+    const result = filterData(data, "all", "all", "all", "inStock", "inStock");
+    expect(result).toHaveLength(3);
+  });
 });
+
+// ─── sortFilaments ───────────────────────────────────────────────────────────
 
 describe("sortFilaments", () => {
   it("sorts numeric values ascending", () => {
@@ -82,6 +142,14 @@ describe("sortFilaments", () => {
     ]);
   });
 
+  it("sorts numeric values descending", () => {
+    const result = sortFilaments(data, "cost", "desc");
+
+    // PL-303 has no cost → pushed to end
+    expect(result[0].identifier).toBe("PL-101");
+    expect(result[result.length - 1].identifier).toBe("PL-303");
+  });
+
   it("sorts date values descending", () => {
     const result = sortFilaments(data, "dateAdded", "desc");
 
@@ -90,6 +158,13 @@ describe("sortFilaments", () => {
       "PL-101",
       "PL-303",
     ]);
+  });
+
+  it("sorts date values ascending", () => {
+    const result = sortFilaments(data, "dateAdded", "asc");
+
+    expect(result[0].identifier).toBe("PL-303");
+    expect(result[result.length - 1].identifier).toBe("PT-202");
   });
 
   it("sorts string values ascending", () => {
@@ -102,9 +177,53 @@ describe("sortFilaments", () => {
     ]);
   });
 
-  it("pushes nullish values to the end", () => {
+  it("sorts string values descending", () => {
+    const result = sortFilaments(data, "identifier", "desc");
+
+    expect(result.map((f) => f.identifier)).toEqual([
+      "PT-202",
+      "PL-303",
+      "PL-101",
+    ]);
+  });
+
+  it("pushes nullish values to the end (asc)", () => {
+    const result = sortFilaments(data, "cost", "asc");
+
+    expect(result[result.length - 1].identifier).toBe("PL-303");
+  });
+
+  it("pushes nullish values to the end (desc)", () => {
     const result = sortFilaments(data, "cost", "desc");
 
     expect(result[result.length - 1].identifier).toBe("PL-303");
+  });
+
+  it("handles two nullish values equally", () => {
+    const withTwoNull: filament[] = [
+      { ...data[0], cost: undefined },
+      { ...data[1], cost: undefined },
+    ];
+    const result = sortFilaments(withTwoNull, "cost", "asc");
+    // Both are null → relative order is preserved (stable)
+    expect(result).toHaveLength(2);
+  });
+
+  it("does not mutate the original array", () => {
+    const original = [...data];
+    sortFilaments(data, "identifier", "desc");
+    expect(data.map((f) => f.identifier)).toEqual(
+      original.map((f) => f.identifier),
+    );
+  });
+
+  it("handles an empty array", () => {
+    expect(sortFilaments([], "identifier", "asc")).toEqual([]);
+  });
+
+  it("handles a single-element array", () => {
+    const result = sortFilaments([data[0]], "identifier", "asc");
+    expect(result).toHaveLength(1);
+    expect(result[0].identifier).toBe("PL-101");
   });
 });

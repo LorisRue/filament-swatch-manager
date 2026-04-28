@@ -142,4 +142,110 @@ describe("POST /api/filament", () => {
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("Error inserting filament");
   });
+
+  it("returns 400 when payload is not a JSON object", async () => {
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "not-json{{{",
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 400 when material is not in allowed list", async () => {
+    const invalid = { ...validPayload, material: "WOOD" };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("Invalid material value");
+  });
+
+  it("returns 400 when colorHex format is invalid", async () => {
+    const invalid = { ...validPayload, colorHex: "red" };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("Invalid colorHex format");
+  });
+
+  it("returns 400 when weight is zero or negative", async () => {
+    const invalid = { ...validPayload, weight: 0 };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("Invalid weight value");
+  });
+
+  it("returns 400 when inStock is not boolean", async () => {
+    const invalid = { ...validPayload, inStock: "yes" };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("Invalid inStock value");
+  });
+
+  it("returns 400 when printSettings is missing", async () => {
+    const { printSettings: _, ...withoutSettings } = validPayload;
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(withoutSettings),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("Missing printSettings object");
+  });
+
+  it("sets dateAdded automatically when not provided in payload", async () => {
+    const insert = jest.fn().mockResolvedValue({ error: null });
+    mockedSupabase.from.mockReturnValue({ insert });
+
+    const { dateAdded: _, ...withoutDate } = validPayload;
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(withoutDate),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(201);
+    const [[insertedRows]] = insert.mock.calls;
+    expect(insertedRows[0].dateAdded).toBeTruthy();
+  });
 });
