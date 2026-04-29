@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { validateFilament } from "@/lib/validateFilament";
 import { convertFilamentToDb } from "@/lib/utils";
 import { filament } from "@/types/filament";
 import { arrMaterial } from "@/types/filament";
@@ -89,6 +90,14 @@ export async function POST(request: Request) {
   }
 
   const filament: filament = payload as filament;
+
+  const validationErrors = validateFilament(filament);
+  if (validationErrors.length > 0) {
+    return new Response(JSON.stringify({ errors: validationErrors }), {
+      status: 422,
+      headers: { "content-type": "application/json" },
+    });
+  }
 
   filament.dateAdded = filament.dateAdded || new Date().toISOString();
 

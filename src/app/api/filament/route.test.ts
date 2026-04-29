@@ -230,6 +230,72 @@ describe("POST /api/filament", () => {
     expect(await response.text()).toContain("Missing printSettings object");
   });
 
+  it("returns 422 when diameter is not 1.75 or 2.85", async () => {
+    const invalid = { ...validPayload, diameter: 3.0 };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "diameter" }),
+      ])
+    );
+  });
+
+  it("returns 422 when nozzleTemp is out of range", async () => {
+    const invalid = {
+      ...validPayload,
+      printSettings: { nozzleTemp: 400 },
+    };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "printSettings.nozzleTemp" }),
+      ])
+    );
+  });
+
+  it("returns 422 when bedTemp is out of range", async () => {
+    const invalid = {
+      ...validPayload,
+      printSettings: { bedTemp: 200 },
+    };
+
+    const request = new Request("http://localhost/api/filament", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(invalid),
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "printSettings.bedTemp" }),
+      ])
+    );
+  });
+
   it("sets dateAdded automatically when not provided in payload", async () => {
     const insert = jest.fn().mockResolvedValue({ error: null });
     mockedSupabase.from.mockReturnValue({ insert });
